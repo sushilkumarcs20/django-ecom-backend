@@ -70,6 +70,23 @@ def signout(request, id):
     logout(request)
     return JsonResponse({'success': 'User Logged Out Successfully'})
 
+@csrf_exempt
+def authenticate_user(request, id, token):
+    if request.method == 'POST':
+        return JsonResponse({'error': True, 'success': False, 'message': 'INVALID REQUEST METHOD'})
+
+    UserModel = get_user_model()
+    try:
+        user = UserModel.objects.get(pk=id)
+        if user.session_token:
+            if user.session_token == token:
+                return JsonResponse({'error': False, 'success': True})
+            return JsonResponse({'error': True, 'success': False, 'message': 'Token mismatch'})
+        return JsonResponse({'error': True, 'success': False, 'message': 'User is not Logged In'})
+        
+    except UserModel.DoesNotExist:
+        return JsonResponse({'error': True, 'success': False, 'message': 'Invalid UserID'})
+
 
 class UserViewSet(viewsets.ModelViewSet):
     permission_classes_by_action = {'create': [AllowAny]}
